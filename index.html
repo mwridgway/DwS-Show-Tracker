@@ -1,0 +1,779 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>DwS Showcase 2026</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0}
+[hidden]{display:none!important}
+/* Layout: slim sticky top bar with a side filter menu, programme cards grouped by act, fixed live tracker at the bottom.
+   Live position comes from state.json, which every phone polls. */
+:root{
+  --bg:#f6f4f8; --surface:#ffffff; --fg:#1e1a24; --muted:#6b6475; --line:#e3dfe8;
+  --accent:#8a1f5c; --on-accent:#ffffff; --accent-soft:#f6e3ee; --hit:#fff1c7; --hit-fg:#5a4300;
+  --shadow:0 6px 20px rgba(40,10,30,.14);
+  --display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --body:"Atkinson Hyperlegible",ui-sans-serif,system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#141118; --surface:#1e1a24; --fg:#efeaf3; --muted:#a59cb0; --line:#332c3b;
+  --accent:#f07ab8; --on-accent:#1e0a16; --accent-soft:#3a1f30; --hit:#3d3210; --hit-fg:#ffe08a;
+  --shadow:0 6px 20px rgba(0,0,0,.5); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141118; --surface:#1e1a24; --fg:#efeaf3; --muted:#a59cb0; --line:#332c3b;
+  --accent:#f07ab8; --on-accent:#1e0a16; --accent-soft:#3a1f30; --hit:#3d3210; --hit-fg:#ffe08a;
+  --shadow:0 6px 20px rgba(0,0,0,.5); color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:16px/1.45 var(--body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:0 calc(120px + env(safe-area-inset-bottom,0px))}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+button,input{font:inherit;color:inherit}
+.wrap{max-width:640px;margin:0 auto}
+.topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);display:flex;align-items:center;gap:12px;padding-block:10px;border-bottom:1px solid var(--line)}
+.menubtn{flex:none;display:inline-flex;align-items:center;gap:6px;height:40px;padding:0 12px;border-radius:10px;border:1px solid var(--line);background:var(--surface);font-weight:700;font-size:14px;cursor:pointer}
+.badge{min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:var(--accent);color:var(--on-accent);font-size:11px;display:inline-flex;align-items:center;justify-content:center;font-variant-numeric:tabular-nums}
+.ttl{flex:1;min-width:0}
+.ttl h1{font-family:var(--display);font-weight:800;font-size:18px;line-height:1.15;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.status{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.scrim{position:fixed;inset:0;z-index:20;background:rgba(20,8,18,.45);opacity:0;pointer-events:none;transition:opacity .2s}
+.scrim.open{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;bottom:0;left:0;z-index:21;width:min(340px,88vw);background:var(--surface);border-right:1px solid var(--line);box-shadow:var(--shadow);display:flex;flex-direction:column;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px);
+  transform:translateX(-105%);visibility:hidden;transition:transform .22s ease,visibility 0s linear .22s}
+.drawer.open{transform:none;visibility:visible;transition:transform .22s ease,visibility 0s}
+.dhead{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px}
+.dhead h2{margin:0;font-size:22px}
+.dclose{width:38px;height:38px;border-radius:10px;border:1px solid var(--line);background:none;font-size:22px;line-height:1;cursor:pointer}
+.dbody{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:0 16px 16px;display:flex;flex-direction:column;gap:22px}
+.dsec h3{display:flex;justify-content:space-between;align-items:baseline;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
+.textbtn{border:0;background:none;color:var(--accent);font-weight:700;font-size:13px;letter-spacing:0;text-transform:none;cursor:pointer;padding:2px 4px;border-radius:6px}
+#q{width:100%;font-size:16px;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--bg);color:var(--fg)}
+#q:focus{outline:none;border-color:var(--accent)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.names{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.chip{font-size:14px;padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent);font-weight:700}
+.chip .c{opacity:.6;font-variant-numeric:tabular-nums}
+.seg{display:flex;gap:6px}
+.tab{flex:1;font-size:14px;font-weight:700;padding:8px 4px;border-radius:10px;border:1px solid var(--line);background:none;color:var(--muted);cursor:pointer}
+.tab[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent);border-color:transparent}
+.switch{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px;font-size:15px;cursor:pointer}
+.switch input{appearance:none;-webkit-appearance:none;flex:none;margin:0;width:44px;height:26px;border-radius:999px;background:var(--line);position:relative;cursor:pointer;transition:background .15s}
+.switch input::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:var(--surface);transition:transform .15s}
+.switch input:checked{background:var(--accent)}
+.switch input:checked::after{transform:translateX(18px)}
+.dfoot{padding:12px 16px;border-top:1px solid var(--line)}
+.dfoot .start{width:100%}
+html.lock,html.lock body{overflow:hidden}
+
+.top{display:flex;flex-direction:column;gap:10px;padding-top:14px}
+.summary{font-size:15px;color:var(--muted)}
+.summary p{margin:0}
+.summary p+p{margin-top:4px}
+.summary b{color:var(--fg)}
+.linkrow{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.linkbtn{align-self:flex-start;font-size:14px;font-weight:700;padding:7px 12px;border-radius:999px;border:1px solid var(--accent);background:none;color:var(--accent);cursor:pointer}
+#linkbox{width:100%;font-size:14px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+.timing{background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.timing>summary{padding:10px 14px;font-size:14px;cursor:pointer;display:flex;justify-content:space-between;gap:10px;list-style:none;color:var(--muted)}
+.timing>summary::-webkit-details-marker{display:none}
+.timing>summary b{color:var(--fg)}
+.timing>summary::after{content:"Edit";flex:none;font-weight:700;color:var(--accent)}
+.timing[open]>summary::after{content:"Done"}
+.tmgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.tmgrid label{display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);min-width:0}
+.tmgrid input{width:100%;font-size:16px;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);font-variant-numeric:tabular-nums;text-transform:none;letter-spacing:0}
+.tmnote{font-size:13px;color:var(--muted);margin:10px 0 0}
+.timeline{font-size:14px;color:var(--muted);margin:0}
+
+h2{font-family:var(--display);font-weight:800;font-size:20px;margin:24px 0 10px;display:flex;align-items:baseline;gap:8px}
+h2 span{font-family:var(--body);font-weight:400;font-size:14px;color:var(--muted)}
+.interval{display:flex;align-items:center;gap:12px;margin-top:28px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.interval::before,.interval::after{content:"";flex:1;height:1px;background:var(--line)}
+.list{display:flex;flex-direction:column;gap:8px}
+.item{display:grid;grid-template-columns:48px 1fr;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 12px 12px 6px;transition:opacity .2s}
+.item.done{opacity:.5}
+.item.now{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.numcol{display:flex;flex-direction:column;align-items:center;gap:3px}
+.num{width:40px;font-family:var(--display);font-weight:800;font-size:22px;line-height:1;color:var(--accent);font-variant-numeric:tabular-nums;background:none;border:0;padding:6px 0;border-radius:8px;cursor:pointer;text-align:center}
+body.follow .num{cursor:default}
+.item.now .num{background:var(--accent);color:var(--on-accent)}
+.eta{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.body{min-width:0}
+.title{font-weight:700;font-size:17px;line-height:1.25}
+.cast{font-size:15px;color:var(--muted);margin-top:4px}
+.cast mark{background:var(--hit);color:var(--hit-fg);font-weight:700;border-radius:4px;padding:0 3px}
+.costume{font-size:14px;margin-top:8px;padding-top:8px;border-top:1px dashed var(--line)}
+.costume .lbl{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:700;display:block}
+.meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.pill{font-size:12px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--accent-soft);color:var(--accent)}
+.pill.warn{background:var(--hit);color:var(--hit-fg)}
+.pill.live{background:var(--accent);color:var(--on-accent)}
+
+/* reactions */
+.rxrow{display:none;align-items:center;justify-content:space-between;gap:8px;margin-top:8px;min-height:32px}
+body.rx-on .rxrow{display:flex}
+.rxb{display:inline-flex;align-items:center;gap:2px;padding:3px 9px 3px 6px;border-radius:999px;background:var(--bg);border:1px solid var(--line);font-size:16px;line-height:1.2;cursor:pointer}
+.rxb.me{border-color:var(--accent);background:var(--accent-soft)}
+.rxb .n{font-size:13px;font-weight:700;color:var(--muted);margin-left:4px;font-variant-numeric:tabular-nums}
+.rxadd{display:none;margin-left:auto;width:36px;height:32px;border-radius:999px;border:1px solid var(--line);background:none;color:var(--muted);cursor:pointer;align-items:center;justify-content:center}
+body.rx-can .rxadd{display:inline-flex}
+.rxadd[aria-expanded="true"]{color:var(--accent);border-color:var(--accent)}
+.picker{display:flex;gap:2px;margin-top:8px;margin-left:auto;padding:4px;background:var(--surface);border:1px solid var(--line);border-radius:999px;width:max-content;max-width:100%;box-shadow:var(--shadow);animation:pop .14s ease-out}
+.pick{font-size:24px;width:42px;height:42px;border:0;background:none;border-radius:50%;cursor:pointer;line-height:1}
+.pick[aria-pressed="true"]{background:var(--accent-soft)}
+@keyframes pop{from{transform:scale(.85);opacity:0}to{transform:none;opacity:1}}
+.who{font-size:14px;color:var(--muted);margin-top:6px;display:flex;flex-direction:column;gap:2px}
+
+.empty{color:var(--muted);padding:24px 0;text-align:center}
+.note{font-size:13px;color:var(--muted);margin-top:28px}
+
+.livebar{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--surface);border-top:1px solid var(--line);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:10px calc(10px + env(safe-area-inset-bottom,0px))}
+.live-inner{max-width:640px;margin:0 auto;display:flex;gap:8px;align-items:center}
+.live-text{flex:1;min-width:0;font-size:14px;color:var(--muted);text-align:left;background:none;border:0;padding:2px 4px;border-radius:8px}
+button.live-text{cursor:pointer}
+.live-text>span{display:block}
+.live-text .le{font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:var(--accent)}
+.live-text .lt{font-weight:700;color:var(--fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.live-text .ln{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.live-text .ln b{color:var(--fg)}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--accent);margin-right:6px;vertical-align:1px;animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.3}}
+.lbtn{flex:none;width:38px;height:42px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--fg);font-size:20px;line-height:1;cursor:pointer}
+.lbtn:disabled{opacity:.35;cursor:default}
+.start{flex:none;padding:10px 14px;border-radius:10px;border:0;background:var(--accent);color:var(--on-accent);font-weight:700;cursor:pointer}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(96px + env(safe-area-inset-bottom,0px));z-index:30;background:var(--fg);color:var(--bg);padding:10px 14px;border-radius:10px;font-size:14px;max-width:calc(100% - 32px);box-shadow:var(--shadow)}
+@media (prefers-reduced-motion:reduce){.item,.drawer,.scrim{transition:none}.picker,.dot{animation:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <button class="menubtn" id="menu" aria-controls="drawer" aria-expanded="false"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>Filter<span class="badge" id="badge" hidden></span></button>
+    <div class="ttl"><h1>DwS Studio Showcase 2026</h1><div class="status" id="status"></div></div>
+  </div>
+  <div class="top"><div class="summary" id="sum"></div></div>
+  <main id="out"></main>
+  <p class="note">Times marked ~ are estimated start times. Names are as spelled on the studio's sheet. "Ile/Ilé", "Eireann/Eireanne" and "Johan/Johan G" are treated as the same person. Riff Off lists just "Leah", so it shows for both Leah W and Leah R. The finale lists classes, not names, so it appears for everyone you filter.</p>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-label="Filter" aria-hidden="true" inert>
+  <div class="dhead"><h2>Filter</h2><button class="dclose" id="dclose" aria-label="Close filter">×</button></div>
+  <div class="dbody">
+    <section class="dsec">
+      <h3>Dancers <button class="textbtn" id="clr" hidden>Clear</button></h3>
+      <input id="q" type="search" placeholder="Search names" autocomplete="off" aria-label="Search dancers">
+      <div class="names" id="sugg"></div>
+    </section>
+    <section class="dsec">
+      <h3>Show</h3>
+      <div class="seg" id="tabs">
+        <button class="tab" data-act="all" aria-pressed="true">Both acts</button>
+        <button class="tab" data-act="1" aria-pressed="false">Act 1</button>
+        <button class="tab" data-act="2" aria-pressed="false">Act 2</button>
+      </div>
+      <label class="switch" for="cos">Show costumes<input type="checkbox" id="cos" checked></label>
+    </section>
+    <section class="dsec" id="ownerSec" hidden>
+      <h3>Run the live tracker</h3>
+      <p class="tmnote" id="ownerNote">Paste a GitHub token that can write to this repo. It stays on this phone only.</p>
+      <input id="tok" type="password" autocomplete="off" placeholder="github_pat_…" aria-label="GitHub token" style="width:100%;font-size:16px;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--bg);color:var(--fg);margin-top:8px">
+      <div class="seg" style="margin-top:8px"><button class="tab" id="tokSave">Save</button><button class="tab" id="tokClear">Remove</button></div>
+    </section>
+    <section class="dsec" id="timingSec" hidden>
+      <h3>Show timing</h3>
+      <div id="timing"></div>
+    </section>
+  </div>
+  <div class="dfoot"><button class="start" id="ddone">Done</button></div>
+</aside>
+
+<div class="livebar" role="region" aria-label="Live show tracker">
+  <div class="live-inner" id="live"></div>
+</div>
+<div class="toast" id="toast" role="status" hidden></div>
+<script id="live-state" type="application/json">{"cur":53,"at":1792261406719,"start":"18:00","mpi":4,"gap":20,"ts":1792261406719}</script>
+<script>
+const PAGE_URL="https://mwridgway.github.io/DwS-Show-Tracker/";
+const REPO="mwridgway/DwS-Show-Tracker";
+
+// [act, no, title, cast, costume, listedCount, label]
+const D=[
+[1,1,"We're All in This Together","Elri, Izzy, Carli, Bonny, Ilke, Lena, Liv, Kayla J, Rebecca J, Bethany, Eireann, Katie","White T-shirt, Black Cycling Shorts, White Socks, Plain Black Takkies. (Net Skirt, Hair Bows, Shakers)"],
+[1,2,"You Gotta Be...","Sarah-Jayne",""],
+[1,3,"Hey Mickey","Summer, Grace, Winnie, Alivia, Rhode, Islay, Maggie","White T-shirt, Black Cycling Shorts, White Socks, Tap Shoes (Purple Skirt)"],
+[1,4,"A Day for the Cat in the Hat","Rayne-Leigh, Skyla, Zea-Ann, Amelie","Own Style Costume (Hat)"],
+[1,5,"I Feel Alive","Noah, Luke, Eckhart, Johann S, Daniel, Josh","Own Style Rock n Roll"],
+[1,6,"Sherry","Caleb, Iwan, Johan G","White Button Down School Shirt, Black Pants, Black Socks, Tap Shoes (Waist Coat and Tie and Hat)"],
+[1,7,"Right Hand Man","Ilé",""],
+[1,8,"Ice Ice Baby","Eva, Anaise","Own Style"],
+[1,9,"Watch What Happens","Elri",""],
+[1,10,"This is Who I Am","Caleb, Micaela, Nadia, Daniella","Camo/Hats"],
+[1,11,"Into The Great Unknown","Bonny & Eckhart",""],
+[1,12,"Copacabana","Vicky, Inge","Own Style"],
+[1,13,"Ev'ry Body Wants to be a Cat","Eva, Anaise, Summer, Kadin, Emily, Amber, Grace, Charlotte, Rhode, Islay, Maggie","Long Black Leggings, White T-shirt (Ears, Tail, Bow Tie)"],
+[1,14,"Cinderella","Isabella",""],
+[1,15,"Cotton Eye Joe / Timber","Carli & Bailey, Shanlee & Mila, Amelie & Emma, Zea-Ann & Rebecca, Skyla & Rayne","Long Black Leggings, Black T-shirt, Denim Jacket/Shorts or pants (Cowboy Hat & Bandanna)"],
+[1,16,"Villain","Elri",""],
+[1,17,"I Got Rhythm","Eckhart & Luke / Stella, Luna, Bonny, Isabella","Boys: White Button Down School Shirt, Black Pants, Black Socks, Tap Shoes (Waist Coat and Tie and Hat). Girls: own style Dress & Tap Shoes"],
+[1,18,"Right Hand Man","Daniella, Myrrh, Tegan","Own Style (Dress)"],
+[1,19,"Bop to the Top","Sarah-Jayne & Caleb",""],
+[1,20,"When I'm Older","Summer, Grace, Winnie, Alivia, Rhode, Islay, Maggie","White T-shirt, Black Cycling Shorts, White Socks, Tap Shoes (Skirt, Scarf)"],
+[1,21,"RED","Lena",""],
+[1,22,"Captain Jack Sparrow","Johan G",""],
+[1,23,"Wellerman","Noah, Luke, Eckhart, Johann S, Daniel, Josh","Pirate & Toy sword"],
+[1,24,"Paint It Black","Nadia, Daniella, Maia, Leah W, Talita","Long Black Leggings, Black T-shirt, Black Takkies, Black Socks (Black Peak Cap & White Gloves)"],
+[1,25,"We Go Together","Bonny & Maggie",""],
+[1,26,"Paciencia Y Fe","Vicky","Own Style"],
+[1,27,"Ice Ice Baby","Kadin, Emily, Amber, Grace","Own Style Hip Hop"],
+[1,28,"You Don't Own Me","Lisa, Jennifer, Inge",""],
+[1,29,"Double Life","Zoe, Milla, Sarah-Jayne, Caleb, Anni, Iwan, Rebecca, Tegan, Myrrh, Ilé","Long Black Leggings, Black T-shirt, Black Takkies, Black Socks (Skirts, Gloves, Hats & Red T-Shirts (Boys), Neck acc, ribbons)"],
+[1,30,"Naughty","Bonny",""],
+[1,31,"End of the Line","Lena & Elri",""],
+[1,32,"Zero to Hero","Shanlee",""],
+[1,33,"Burning Love","Simoné, Michelle, Kimbol, Lisa, Vicky, Nikoleen, Janneke, Jayne, Inge, Jen, Nicky","Black Body Suit, Black Cycling Shorts, Black Socks, Black Takkies (Skirt, Gloves, Neck/Hair piece)"],
+[2,1,"Light Em Up","Johan, Caleb, Luke, Iwan, Eckhart, Elri, Isabella, Lena, Bonny, Jessie, Luna, Stella, Shan, Inge, Vicky, Nikoleen, Bronwyn","Long Black Leggings/Pants, Black T-shirt, Black Socks, Tap Shoes (Yellow Accessories)"],
+[2,2,"Don't Rain on My Parade","Sarah-Jayne",""],
+[2,3,"U Can't Touch This","Noah, Luke, Eckhart, Johann S, Daniel, Josh","Long Black Pants, Black T-shirt, Black Takkies, Black Socks (Lumo Green Accessory, Glove, Hat, Gold Neck Chain)"],
+[2,4,"The Tummy Song","Maggie",""],
+[2,5,"Cotton Eye Joe / Timber","Izzy & Elri, Rebecca J & Thea, Liv & Sylvia, Bethany & Katie, Eireanne & Clara, Emma & Ilke, Bonny & Lena","Long Black Leggings, Black T-shirt, Denim Jacket/Shorts or pants (Cowboy Hat & Bandanna)"],
+[2,6,"Something's Coming","Johan G",""],
+[2,7,"Right Hand Man","Sarah-Jayne, Zoe, Mila","Own Style (Dress)",4],
+[2,8,"Singing in the Rain","Eckhart",""],
+[2,9,"Ice Ice Baby","Islay, Rhode, Summer, Maggie","Own Style Hip Hop"],
+[2,10,"I'm the Mad Hatter","Bonny",""],
+[2,11,"Riff Off","Maia, Talita, Leah, Daniella","Same as Eisteddfod (Red Bandanna)"],
+[2,12,"I'm the Greatest Star","Lena",""],
+[2,13,"Paciencia Y Fe","Inge",""],
+[2,14,"A Day for the Cat in the Hat","Carli, Bethany, Bailey, Shanlee, Mila","Own Style (Hat)"],
+[2,15,"Dance the Night","Zoe, Milla, Sarah-Jayne, Caleb, Anni, Iwan, Rebecca, Tegan, Myrrh, Ile, Rogue, Micaela, Kayla A, Leah R, Johan, Marli, Tristan","Own Style Black/Denim (Pink Accessories)"],
+[2,16,"Faith","Eckhart, Stella, Luna, Jessie, Elri, Lena, Bonny, Isabella","Black T-shirt, Long Black Leggings/Pants (Eckhart), Black Socks, Tap Shoes (Skirt; Hat, Tie & Waistcoat for Eckhart)"],
+[2,17,"I'm Too Smurfy","Eva, Anaise, Summer, Kadin, Emily, Amber, Grace, Rhode, Islay, Maggie","White T-shirt, Black Cycling Shorts (Blue Skirt, Alice Band, Blue Ribbons, Yellow Flower, Blue and White Gloves)"],
+[2,18,"Coyote Ugly","Michelle, Kimbol, Lisa, Vicky, Nikoleen, Janneke, Jayne, Inge, Jen, Nicky, Shan","All Black & Denim Jacket (Hats, Wrist Bling & Bandanna)"],
+[2,19,"Big Time","Caleb",""],
+[2,20,"New Girl in Town","Shanlee, Bonny, Lena, Elri, Sarah-Jayne",""],
+[2,21,"Friend Like Me","Eckhart",""],
+[2,22,"Video Killed the Radio Star","Johan G, Nadia, Ilé, Rogue, Marli, Micaela, Kayla A, Tristan, Leah R, Talita, Maia, Daniella, Leah W","Black and White (Johan in colour)"],
+[2,23,"Super Trouper","Caleb, Elri, Lena","Add Denim Jacket to last costume worn · Own choreography"],
+[2,24,"Don't You Worry About a Thing","Isabella",""],
+[2,25,"The Boy From NY City","Summer, Grace, Winnie, Alivia, Islay, Maggie","Rainbow Skirt & Hair Bow"],
+[2,26,"Be Our Guest","Bailey, Shanlee, Mila, Carli, Bonny, Emma, Thea, Rayne, Skyla, Emma, Amelie, Rebecca M, Zea-Ann","White T-shirt, Long Black Leggings, Black Socks, Black Takkies (Top Hat, Bow on T-shirt, Arm Flag)"],
+[2,27,"Diamond","Ilé & Elri","Silver Outfits"],
+[2,28,"Rock God","Inge, Bronwyn, Nikoleen, Vicky","As per Eisteddfod"],
+[2,29,"We Didn't Start The Fire","Mod Mix Tw, Mod Mix Teen, Boyz HHF, Young Adults","All Black, Rock T-shirts (Red Bandanna/Arm Flags)",null,"Finale · about 24"]
+];
+const ALIAS={"Ile":"Ilé","Eireanne":"Eireann","Johan":"Johan G"};
+const MULTI={"Leah":["Leah W","Leah R"]};
+const EMOJI=["❤️","👏","🔥","😍","😂","🥹"];
+const norm=s=>s.normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase();
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const SEP=/(\s*[,&\/]\s*)/;
+const reduceMotion=()=>matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+const items=D.map(([act,no,title,cast,costume,listed,label],idx)=>{
+  const group=act===2&&no===29;
+  const ppl=new Set();let ambig=null;
+  if(!group)cast.split(SEP).forEach((t,i)=>{if(i%2||!t)return;
+    if(MULTI[t]){MULTI[t].forEach(p=>ppl.add(p));ambig=t}else ppl.add(ALIAS[t]||t)});
+  return {idx,act,no,title,cast,costume,listed,label,group,ambig,people:[...ppl]};
+});
+const counts={};
+items.forEach(it=>it.people.forEach(p=>counts[p]=(counts[p]||0)+1));
+const allNames=Object.keys(counts).sort((a,b)=>a.localeCompare(b));
+const dancesOf=n=>items.filter(it=>it.people.includes(n));
+const slug=n=>norm(n).replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
+const BY_SLUG={};allNames.forEach(n=>BY_SLUG[slug(n)]=n);
+
+const $=id=>document.getElementById(id);
+
+/* ---------- shared live state: baked into the page itself, so nobody needs to sign in ---------- */
+function cleanLive(d){
+  const o={cur:null,at:null,ts:0,start:"",mpi:4,gap:20};
+  if(d&&typeof d==="object"){
+    if(Number.isInteger(d.cur)&&items[d.cur])o.cur=d.cur;
+    if(typeof d.at==="number"&&isFinite(d.at))o.at=d.at;
+    if(typeof d.ts==="number"&&isFinite(d.ts))o.ts=d.ts;
+    if(typeof d.start==="string"&&/^\d{2}:\d{2}$/.test(d.start))o.start=d.start;
+    if(typeof d.mpi==="number"&&d.mpi>=1&&d.mpi<=20)o.mpi=d.mpi;
+    if(typeof d.gap==="number"&&d.gap>=0&&d.gap<=90)o.gap=d.gap;
+  }
+  return o;
+}
+let LIVE=cleanLive(null);
+try{LIVE=cleanLive(JSON.parse($("live-state").textContent))}catch(e){}
+// Where this viewer thinks the show is: their own taps, unless a newer update from the owner has arrived since.
+function pos(){
+  const m=S.mine;
+  if(!DRIVE.on&&m&&(LIVE.cur===null||!LIVE.at||m.at>LIVE.at))return {...LIVE,cur:m.cur,at:m.at,mine:true};
+  return {...LIVE,mine:false};
+}
+
+// The owner drives the tracker: each change commits state.json to the repo; every phone polls it.
+const DRIVE={on:false,timer:null,pending:false,writing:false,again:false};
+const GH={token:null,sha:null};
+try{GH.token=localStorage.getItem("dws-gh-token")||null}catch(e){}
+const ghHeaders=()=>({Authorization:"Bearer "+GH.token,Accept:"application/vnd.github+json"});
+async function ghSha(){
+  const r=await fetch(`https://api.github.com/repos/${REPO}/contents/state.json?ref=main&t=${Date.now()}`,{headers:ghHeaders(),cache:"no-store"});
+  if(r.status===404)return null;
+  if(!r.ok){const e=new Error("gh");e.status=r.status;throw e}
+  return (await r.json()).sha;
+}
+function schedulePublish(){
+  DRIVE.pending=true;clearTimeout(DRIVE.timer);
+  DRIVE.timer=setTimeout(()=>publishNow(false),1200);
+}
+async function publishNow(retried){
+  DRIVE.timer=null;
+  if(DRIVE.writing){DRIVE.again=true;return}
+  DRIVE.writing=true;DRIVE.again=false;
+  let ok=false;
+  try{
+    if(GH.sha===null)GH.sha=await ghSha();
+    const body={message:"Live: "+(LIVE.cur===null?"cleared":where(items[LIVE.cur])+" "+items[LIVE.cur].title),
+      content:btoa(JSON.stringify(LIVE)),branch:"main"};
+    if(GH.sha)body.sha=GH.sha;
+    const r=await fetch(`https://api.github.com/repos/${REPO}/contents/state.json`,{method:"PUT",headers:{...ghHeaders(),"Content-Type":"application/json"},body:JSON.stringify(body)});
+    if((r.status===409||r.status===422)&&!retried){GH.sha=null;DRIVE.writing=false;return publishNow(true)}
+    if(r.status===401||r.status===403||r.status===404){toast("GitHub refused the token. Open Filter to check it.");}
+    else if(!r.ok)toast("Couldn't update everyone. Check your signal and tap again.");
+    else{GH.sha=(await r.json()).content.sha;ok=true}
+  }catch(e){toast(e&&e.status===401?"GitHub refused the token. Open Filter to check it.":"Couldn't update everyone. Check your signal and tap again.")}
+  DRIVE.writing=false;
+  if(DRIVE.again){publishNow(false);return}
+  DRIVE.pending=false;renderLive();
+  if(ok)toast("Sent. Other phones update within about a minute.");
+}
+
+/* ---------- per-viewer state ---------- */
+const S={sel:[],act:"all",cos:true,mine:null};
+try{
+  const s=JSON.parse(localStorage.getItem("dws-v2")||"null");
+  if(s){S.sel=(s.sel||[]).filter(n=>counts[n]);if(s.act)S.act=s.act;if(typeof s.cos==="boolean")S.cos=s.cos;
+    if(s.mine&&Number.isInteger(s.mine.cur)&&items[s.mine.cur]&&typeof s.mine.at==="number")S.mine={cur:s.mine.cur,at:s.mine.at}}
+}catch(e){}
+function save(){try{localStorage.setItem("dws-v2",JSON.stringify(S))}catch(e){}}
+function fromHash(once){
+  let h="";try{h=decodeURIComponent(location.hash.slice(1))}catch(e){}
+  if(!h)return false;
+  if(once){try{if(sessionStorage.getItem("dws-hash")===h)return false;sessionStorage.setItem("dws-hash",h)}catch(e){}}
+  const ns=[...new Set(h.split(".").map(t=>BY_SLUG[t.toLowerCase()]).filter(Boolean))];
+  if(ns.length){S.sel=ns;$("q").value="";save();return true}
+  return false;
+}
+// Keep each viewer's place when the page reloads for a new live update.
+// Scroll is remembered as "this card, this far down the screen", not raw pixels, so it survives cards changing height.
+function anchor(){
+  const barB=document.querySelector(".topbar").getBoundingClientRect().bottom;
+  for(const el of document.querySelectorAll(".item")){const r=el.getBoundingClientRect();if(r.bottom>barB+4)return {id:el.id,top:r.top}}
+  return null;
+}
+function toAnchor(a){if(!a)return;const el=$(a.id);if(el)window.scrollBy(0,el.getBoundingClientRect().top-a.top)}
+function keepPlace(fn){const a=anchor();fn();toAnchor(a)}
+let POSITIONED=false;
+function saveUI(){if(!POSITIONED)return;try{sessionStorage.setItem("dws-ui",JSON.stringify({a:anchor(),y:scrollY,drawer:$("drawer").classList.contains("open"),q:$("q").value}))}catch(e){}}
+
+let toastT;
+function toast(msg){const t=$("toast");t.textContent=msg;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,3500)}
+
+/* ---------- helpers ---------- */
+function selForms(){
+  const f=new Set();
+  S.sel.forEach(s=>{f.add(s);for(const k in ALIAS)if(ALIAS[k]===s)f.add(k);for(const k in MULTI)if(MULTI[k].includes(s))f.add(k)});
+  return f;
+}
+function castHTML(it,forms){
+  return it.cast.split(SEP).map((t,i)=>{
+    if(i%2){const c=t.trim();return c===","?", ":" "+esc(c)+" "}
+    return forms.has(t)?`<mark>${esc(t)}</mark>`:esc(t);
+  }).join("");
+}
+const where=it=>`Act ${it.act} #${it.no}`;
+const plural=(n,w)=>`${n} ${w}${n===1?"":"s"}`;
+function gapsFor(n){
+  const g={},m=dancesOf(n);
+  for(let i=1;i<m.length;i++)if(m[i].act===m[i-1].act)g[m[i].idx]=m[i].idx-m[i-1].idx-1;
+  return g;
+}
+const hm=t=>{t=((Math.round(t)%1440)+1440)%1440;return String(Math.floor(t/60)).padStart(2,"0")+":"+String(t%60).padStart(2,"0")};
+// Estimated start time of an item: from the live tracker if running, else from the show start time.
+function eta(idx){
+  const L=pos();let bi,bm;
+  if(L.cur!==null&&L.at){if(idx<=L.cur)return null;bi=L.cur;const d=new Date(L.at);bm=d.getHours()*60+d.getMinutes()+d.getSeconds()/60}
+  else if(L.start){const [h,m]=L.start.split(":").map(Number);bi=0;bm=h*60+m}
+  else return null;
+  let t=bm+(idx-bi)*L.mpi;
+  if(items[bi].act===1&&items[idx].act===2)t+=L.gap;
+  return hm(t);
+}
+
+/* ---------- rendering ---------- */
+function renderBar(){
+  const typed=norm($("q").value.trim());
+  $("clr").hidden=!S.sel.length;
+  document.querySelectorAll("#tabs [data-act]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.act===S.act));
+  $("cos").checked=S.cos;
+  $("sugg").innerHTML=allNames.filter(n=>!typed||norm(n).includes(typed)).map(n=>
+    `<button class="chip" data-n="${esc(n)}" aria-pressed="${S.sel.includes(n)}">${esc(n)} <span class="c">${counts[n]}</span></button>`).join("")
+    ||`<p class="tmnote">No dancer matches that name.</p>`;
+  const b=$("badge");b.hidden=!S.sel.length;b.textContent=S.sel.length;
+  const who=S.sel.length?S.sel.slice(0,2).join(", ")+(S.sel.length>2?` +${S.sel.length-2}`:""):"All dancers";
+  $("status").textContent=who+" · "+(S.act==="all"?"Both acts":"Act "+S.act);
+}
+
+function renderSummary(){
+  const typed=norm($("q").value.trim());
+  const startLine=LIVE.start?`<p>Show starts ${esc(LIVE.start)}. Times marked ~ are estimates.</p>`:"";
+  if(S.sel.length){
+    const names=S.sel.length<3?S.sel.join(" & "):`these ${S.sel.length} dancers`;
+    $("sum").innerHTML=S.sel.map(n=>{
+      const m=dancesOf(n),a1=m.filter(i=>i.act===1).length,q=Object.values(gapsFor(n)).filter(g=>g<=2).length;
+      return `<p><b>${esc(n)}</b>: ${plural(m.length,"dance")} (${a1} in Act 1, ${m.length-a1} in Act 2)${q?`, ${plural(q,"quick change")}`:""}.</p>`;
+    }).join("")+startLine+`<div class="linkrow"><button class="linkbtn" id="share">Copy link to ${esc(names)}</button>
+      <input id="linkbox" readonly aria-label="Link to this view" hidden></div>`;
+  }else{
+    $("sum").innerHTML=`<p>${typed?"Dances matching your search.":`${items.length} items across two acts. Use Filter to pick dancers.`}</p>`+startLine;
+  }
+}
+
+// Timing settings: only the owner sees them, in the filter menu.
+let timingBuilt=false;
+function renderTiming(){
+  $("timingSec").hidden=!DRIVE.on;
+  if(!DRIVE.on)return;
+  if(!timingBuilt){
+    timingBuilt=true;
+    $("timing").innerHTML=`<div class="tmgrid">
+        <label for="tm-start">Start<input id="tm-start" type="time"></label>
+        <label for="tm-mpi">Min per item<input id="tm-mpi" type="number" min="1" max="20" step="0.5" inputmode="decimal"></label>
+        <label for="tm-gap">Interval min<input id="tm-gap" type="number" min="0" max="90" step="5" inputmode="numeric"></label>
+      </div>
+      <p class="tmnote">Everyone with the link sees these times. Once the live tracker is running, times recalculate from the dance on stage.</p>`;
+  }
+  const a=document.activeElement;
+  if(a!==$("tm-start"))$("tm-start").value=LIVE.start;
+  if(a!==$("tm-mpi"))$("tm-mpi").value=LIVE.mpi;
+  if(a!==$("tm-gap"))$("tm-gap").value=LIVE.gap;
+}
+
+const FACE=`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M20.5 11A8.5 8.5 0 1 1 13 3.55"/><path d="M8.5 14.5c.9 1.2 2.1 1.8 3.5 1.8s2.6-.6 3.5-1.8"/><circle cx="9" cy="10" r=".6" fill="currentColor"/><circle cx="15" cy="10" r=".6" fill="currentColor"/><path d="M19 2v5M16.5 4.5h5"/></svg>`;
+
+function renderList(){
+  const typed=norm($("q").value.trim()),forms=selForms(),cur=pos().cur;
+  const gaps={};S.sel.forEach(n=>gaps[n]=gapsFor(n));
+  let shown=items.filter(it=>S.act==="all"||String(it.act)===S.act);
+  if(S.sel.length)shown=shown.filter(it=>it.group||S.sel.some(n=>it.people.includes(n)));
+  else if(typed)shown=shown.filter(it=>it.people.some(p=>norm(p).includes(typed)));
+  let out="";
+  [1,2].forEach(a=>{
+    const rows=shown.filter(it=>it.act===a);
+    if(!rows.length)return;
+    if(a===2&&out)out+=`<div class="interval">Interval</div>`;
+    out+=`<h2>Act ${a}<span>${plural(rows.length,"item")}</span></h2><div class="list">`;
+    rows.forEach(it=>{
+      const size=it.label||(it.listed?`${it.listed} listed`:it.people.length===1?"Solo":it.people.length===2?"Duet":`${it.people.length} dancers`);
+      let meta=`<span class="pill">${esc(size)}</span>`;
+      if(cur===it.idx)meta=`<span class="pill live">On stage</span>`+meta;
+      S.sel.forEach(n=>{const g=gaps[n][it.idx];if(g===undefined)return;
+        const who=S.sel.length>1?esc(n)+": ":"";
+        meta+=`<span class="pill ${g<=2?"warn":""}">${who}${g===0?"straight after last dance":plural(g,"item")+" since last dance"}</span>`});
+      if(it.group&&S.sel.length)meta+=`<span class="pill warn">Group finale: check your dancer's class</span>`;
+      if(it.ambig&&S.sel.some(n=>MULTI[it.ambig].includes(n)))meta+=`<span class="pill warn">Sheet says just ${esc(it.ambig)}</span>`;
+      const cls=cur===null?"":it.idx<cur?" done":it.idx===cur?" now":"";
+      const t=eta(it.idx);
+      out+=`<article class="item${cls}" id="it-${it.idx}">
+        <div class="numcol"><button class="num" data-idx="${it.idx}" aria-label="Mark ${where(it)} as on stage">${it.no}</button>${t?`<span class="eta" title="Estimated start">~${t}</span>`:""}</div>
+        <div class="body"><div class="title">${esc(it.title)}</div>
+        <div class="cast">${castHTML(it,forms)}</div>
+        <div class="meta">${meta}</div>
+        ${S.cos&&it.costume?`<div class="costume"><span class="lbl">Costume</span>${esc(it.costume)}</div>`:""}
+        <div class="rxrow"><span class="rx" data-idx="${it.idx}"></span>
+          <button class="rxadd" data-idx="${it.idx}" aria-label="React to ${esc(it.title)}" aria-expanded="false">${FACE}</button></div>
+        <div class="picker" data-idx="${it.idx}" hidden>${EMOJI.map(e=>`<button class="pick" data-idx="${it.idx}" data-e="${e}" aria-pressed="false">${e}</button>`).join("")}</div>
+        <div class="who" data-idx="${it.idx}" hidden></div>
+        </div></article>`;
+    });
+    out+="</div>";
+  });
+  $("out").innerHTML=out||`<p class="empty">No dances match "${esc($("q").value)}".</p>`;
+  $("ddone").textContent=shown.length?`Show ${plural(shown.length,"dance")}`:"Done";
+  RX.open=null;
+  renderReactions();
+}
+
+function renderLive(){
+  const L=pos(),drive=DRIVE.on;
+  if(L.cur===null){
+    $("live").innerHTML=`<div class="live-text"><span class="lt">Live show tracker</span><span class="ln">${drive?"Tap the number of the dance on stage to start":"Tap the number of the dance on stage to follow along"}</span></div>`;
+    return;
+  }
+  const c=items[L.cur];
+  let lines;
+  if(S.sel.length){
+    lines=S.sel.map(n=>{
+      const m=dancesOf(n);
+      if(m.some(it=>it.idx===L.cur))return `<span class="ln"><b>${esc(n)}</b> is on stage now</span>`;
+      const nx=m.find(it=>it.idx>L.cur);
+      if(!nx)return `<span class="ln"><b>${esc(n)}</b>: no more listed dances</span>`;
+      const g=nx.idx-L.cur-1,when=g===0?"up next":`in ${plural(g,"item")}`,t=eta(nx.idx);
+      return `<span class="ln"><b>${esc(n)}</b> ${when}${t?` (~${t})`:""}: ${nx.act!==c.act?"after interval, ":""}#${nx.no} ${esc(nx.title)}</span>`;
+    }).join("");
+  }else{
+    const nx=items[L.cur+1];
+    lines=`<span class="ln">${nx?`Next: ${nx.act!==c.act?"interval, then ":""}#${nx.no} ${esc(nx.title)}`:"Last item of the night"}</span>`;
+  }
+  let eyebrow;
+  if(drive)eyebrow=DRIVE.pending?"Updating everyone…":"On stage now · tap to jump";
+  else if(L.mine)eyebrow="Your position · tap to jump";
+  else{
+    const mins=L.at?Math.max(0,Math.floor((Date.now()-L.at)/60000)):0;
+    eyebrow=`<span class="dot" aria-hidden="true"></span>Live · updated ${mins<1?"just now":mins+" min ago"} · tap to jump`;
+    const g=likelyNow();
+    if(g!==null)lines=`<span class="ln"><b>Probably now:</b> ${g==="interval"?"interval":`#${items[g].no} ${esc(items[g].title)}`}</span>`+(S.sel.length?lines:"");
+  }
+  const jump=`<button class="live-text" id="jump" aria-label="Jump to the dance on stage now">
+      <span class="le">${eyebrow}</span>
+      <span class="lt">${where(c)} · ${esc(c.title)}</span>${lines}</button>`;
+  $("live").innerHTML=`<button class="lbtn" id="prev" aria-label="Previous item" ${L.cur===0?"disabled":""}>‹</button>${jump}
+      <button class="lbtn" id="next" aria-label="Next item" ${L.cur===items.length-1?"disabled":""}>›</button>`;
+}
+
+function render(){renderBar();renderSummary();renderTiming();renderList();renderLive()}
+// Followers' phones can miss or delay an update, so guess from the item length how far the show has got.
+function likelyNow(){
+  const L=LIVE;
+  if(pos().mine)return null;
+  if(L.cur===null||!L.at)return null;
+  const el=(Date.now()-L.at)/60000;
+  let i=L.cur+Math.floor(el/L.mpi);
+  if(i===L.cur)return null;
+  const last1=items.filter(x=>x.act===1).length-1;
+  if(L.cur<=last1&&i>last1){
+    const over=el-(last1-L.cur+1)*L.mpi;
+    if(over<L.gap)return "interval";
+    i=last1+1+Math.floor((over-L.gap)/L.mpi);
+  }
+  return Math.min(i,items.length-1);
+}
+setInterval(()=>{if(!DRIVE.on&&!document.hidden)renderLive()},30000);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden&&!DRIVE.on)renderLive()});
+
+function jumpToCurrent(instant){
+  const cur=pos().cur;
+  if(cur===null)return;
+  if(S.act!=="all"&&String(items[cur].act)!==S.act){S.act="all";save();render()}
+  let el=$("it-"+cur);
+  if(!el){ // filtered out: nearest shown dance after it, else before it
+    const ids=[...document.querySelectorAll(".item")].map(e=>+e.id.slice(3));
+    const t=ids.find(i=>i>cur)??ids.filter(i=>i<cur).pop();
+    if(t!==undefined)el=$("it-"+t);
+  }
+  if(el)el.scrollIntoView({block:"center",behavior:instant||reduceMotion()?"auto":"smooth"});
+}
+
+function updateLive(patch){
+  if(!DRIVE.on)return;
+  LIVE={...LIVE,...patch,ts:Date.now()};
+  schedulePublish();
+}
+function setCur(i,scroll){
+  if(DRIVE.on)updateLive({cur:i,at:Date.now()});
+  else{S.mine={cur:i,at:Date.now()};save()} // a viewer's own taps stay on their phone
+  renderSummary();renderTiming();renderList();renderLive();
+  if(scroll)jumpToCurrent();
+}
+
+/* ---------- reactions: switched off (they needed a Claude sign-in); rows stay hidden ---------- */
+const RX={db:null,user:null,me:null,docs:{},mine:{},writing:false,again:false,open:null};
+function tally(idx){
+  const all={...RX.docs};if(RX.me)all[RX.me]=RX.mine;
+  const t={};
+  for(const uid in all){const e=all[uid]&&all[uid][idx];if(EMOJI.includes(e))(t[e]=t[e]||[]).push(uid)}
+  return t;
+}
+function renderReactions(){
+  if(!RX.db)return;
+  document.querySelectorAll(".rx").forEach(el=>{
+    const idx=el.dataset.idx,t=tally(idx),es=EMOJI.filter(e=>t[e]).sort((a,b)=>t[b].length-t[a].length);
+    const n=es.reduce((s,e)=>s+t[e].length,0);
+    el.innerHTML=n?`<button class="rxb${RX.mine[idx]?" me":""}" data-idx="${idx}" aria-label="${n} reactions, show who">${es.slice(0,3).join("")}<span class="n">${n}</span></button>`:"";
+    const card=el.closest(".body");
+    card.querySelectorAll(".pick").forEach(b=>b.setAttribute("aria-pressed",RX.mine[idx]===b.dataset.e));
+    const w=card.querySelector(".who");
+    if(!n)w.hidden=true;
+    if(!w.hidden)fillWho(w,t,es);
+  });
+}
+async function fillWho(w,t,es){
+  const ids=[...new Set(es.flatMap(e=>t[e]))];
+  let ps={};
+  if(RX.user&&ids.length){try{ps=await RX.user.profiles(ids)}catch(e){}}
+  w.textContent="";
+  es.forEach(e=>{
+    const row=document.createElement("div");
+    row.textContent=e+"  "+t[e].map(id=>id===RX.me?"You":(ps[id]&&ps[id].name)||"Someone").join(", ");
+    w.appendChild(row);
+  });
+}
+async function saveMine(){
+  if(RX.writing){RX.again=true;return}
+  RX.writing=true;RX.again=false;
+  try{await RX.db.doc("reactions/"+RX.me).set({r:{...RX.mine}})}
+  catch(e){
+    const code=e&&e.code;
+    RX.mine={...(RX.docs[RX.me]||{})};
+    if(code==="invalid_argument"||code==="not_granted"||code==="revoked"){
+      document.body.classList.remove("rx-can");
+      toast("You can see reactions, but this link doesn't let you add them.");
+    }else toast("Couldn't save your reaction. Try again.");
+    renderReactions();
+  }
+  RX.writing=false;
+  if(RX.again)saveMine();
+}
+function closePicker(){
+  if(RX.open===null)return;
+  document.querySelectorAll(`.picker[data-idx="${RX.open}"]`).forEach(p=>p.hidden=true);
+  document.querySelectorAll(`.rxadd[data-idx="${RX.open}"]`).forEach(b=>b.setAttribute("aria-expanded","false"));
+  RX.open=null;
+}
+
+/* ---------- live updates: poll state.json on this site ---------- */
+let lastState="";
+async function poll(){
+  try{
+    const r=await fetch("state.json?t="+Date.now(),{cache:"no-store"});
+    if(!r.ok)return;
+    const txt=await r.text();
+    if(txt===lastState)return;
+    lastState=txt;
+    const n=cleanLive(JSON.parse(txt));
+    if(DRIVE.pending||n.ts<LIVE.ts)return; // never go backwards (the site lags the owner's newest change)
+    if(JSON.stringify(n)===JSON.stringify(LIVE))return;
+    LIVE=n;
+    keepPlace(()=>{renderSummary();renderTiming();renderList();renderLive()});
+  }catch(e){}
+}
+setInterval(()=>{if(!document.hidden)poll()},10000);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)poll()});
+
+/* ---------- owner mode: a GitHub token saved on the owner's phone ---------- */
+function renderOwner(){
+  const show=!!GH.token||/owner/.test(location.hash);
+  $("ownerSec").hidden=!show;
+  $("ownerNote").textContent=GH.token?"This phone runs the live tracker. Your taps update everyone.":"Paste a GitHub token that can write to this repo. It stays on this phone only.";
+  $("tokClear").hidden=!GH.token;
+}
+async function setDrive(on){
+  DRIVE.on=on;timingBuilt=false;
+  keepPlace(()=>{renderTiming();renderList();renderLive()});renderOwner();
+}
+async function checkToken(){
+  if(!GH.token)return setDrive(false);
+  try{GH.sha=await ghSha();setDrive(true)}
+  catch(e){setDrive(false);toast(e&&(e.status===401||e.status===403||e.status===404)?"That GitHub token can't write to this repo.":"Couldn't reach GitHub. Try again.")}
+}
+$("tokSave").addEventListener("click",()=>{
+  const v=$("tok").value.trim();if(!v)return;
+  GH.token=v;try{localStorage.setItem("dws-gh-token",v)}catch(e){}
+  $("tok").value="";checkToken().then(()=>{if(DRIVE.on)toast("You're running the live tracker.")});
+});
+$("tokClear").addEventListener("click",()=>{GH.token=null;try{localStorage.removeItem("dws-gh-token")}catch(e){}setDrive(false);toast("Token removed from this phone.")});
+addEventListener("hashchange",renderOwner);
+
+/* ---------- events ---------- */
+$("q").addEventListener("input",()=>{renderBar();renderSummary();renderList()});
+$("q").addEventListener("keydown",e=>{if(e.key==="Enter"){const b=$("sugg").querySelector('.chip[aria-pressed="false"]');if(b)b.click()}});
+$("clr").addEventListener("click",()=>{S.sel=[];$("q").value="";save();render()});
+$("sugg").addEventListener("click",e=>{const b=e.target.closest(".chip");if(!b)return;const n=b.dataset.n;
+  S.sel=S.sel.includes(n)?S.sel.filter(x=>x!==n):S.sel.concat(n);$("q").value="";save();render()});
+$("tabs").addEventListener("click",e=>{const b=e.target.closest(".tab");if(!b)return;S.act=b.dataset.act;save();render()});
+$("cos").addEventListener("change",e=>{S.cos=e.target.checked;save();renderList()});
+function openDrawer(restoring){
+  const d=$("drawer");d.inert=false;d.removeAttribute("aria-hidden");d.classList.add("open");$("scrim").classList.add("open");
+  $("menu").setAttribute("aria-expanded","true");document.documentElement.classList.add("lock");closePicker();
+  if(!restoring)setTimeout(()=>$("dclose").focus({preventScroll:true}),60);
+}
+function closeDrawer(){
+  const d=$("drawer");if(!d.classList.contains("open"))return;
+  d.classList.remove("open");$("scrim").classList.remove("open");d.inert=true;d.setAttribute("aria-hidden","true");
+  $("menu").setAttribute("aria-expanded","false");document.documentElement.classList.remove("lock");
+  $("menu").focus({preventScroll:true});
+}
+$("menu").addEventListener("click",()=>openDrawer(false));
+$("dclose").addEventListener("click",closeDrawer);
+$("ddone").addEventListener("click",()=>{closeDrawer();window.scrollTo({top:0,behavior:reduceMotion()?"auto":"smooth"})});
+$("scrim").addEventListener("click",closeDrawer);
+$("sum").addEventListener("click",e=>{
+  if(!e.target.closest("#share"))return;
+  const link=PAGE_URL+"#"+S.sel.map(slug).join(".");
+  const box=$("linkbox");
+  const fallback=()=>{box.value=link;box.hidden=false;box.focus();box.select();toast("Copy the link from the box below the button.")};
+  try{navigator.clipboard.writeText(link).then(()=>toast("Link copied. It opens straight to this view."),fallback)}catch(err){fallback()}
+});
+$("timing").addEventListener("change",e=>{
+  const id=e.target.id;
+  if(id==="tm-start")updateLive({start:/^\d{2}:\d{2}$/.test(e.target.value)?e.target.value:""});
+  else if(id==="tm-mpi"){const v=parseFloat(e.target.value);if(v>=1&&v<=20)updateLive({mpi:v})}
+  else if(id==="tm-gap"){const v=parseFloat(e.target.value);if(v>=0&&v<=90)updateLive({gap:v})}
+  else return;
+  renderSummary();renderTiming();renderList();renderLive();
+});
+$("out").addEventListener("click",e=>{
+  const num=e.target.closest(".num");if(num){setCur(+num.dataset.idx,false);return}
+  const add=e.target.closest(".rxadd");
+  if(add){const idx=add.dataset.idx,was=RX.open===idx;closePicker();
+    if(!was){RX.open=idx;add.setAttribute("aria-expanded","true");add.closest(".body").querySelector(".picker").hidden=false}return}
+  const pick=e.target.closest(".pick");
+  if(pick&&RX.me){const idx=pick.dataset.idx,em=pick.dataset.e;
+    if(RX.mine[idx]===em)delete RX.mine[idx];else RX.mine[idx]=em;
+    closePicker();renderReactions();saveMine();return}
+  const rxb=e.target.closest(".rxb");
+  if(rxb){const w=rxb.closest(".body").querySelector(".who");w.hidden=!w.hidden;renderReactions()}
+});
+document.addEventListener("click",e=>{if(RX.open!==null&&!e.target.closest(".picker,.rxadd"))closePicker()});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"){closePicker();closeDrawer()}});
+$("live").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
+  const cur=pos().cur;
+  if(b.id==="prev"&&cur!==null)setCur(Math.max(0,cur-1),true);
+  else if(b.id==="next"&&cur!==null)setCur(Math.min(items.length-1,cur+1),true);
+  else if(b.id==="jump")jumpToCurrent()});
+addEventListener("hashchange",()=>{if(fromHash(false))render()});
+let uiT;
+addEventListener("scroll",()=>{clearTimeout(uiT);uiT=setTimeout(saveUI,200)},{passive:true});
+addEventListener("pagehide",saveUI);
+document.addEventListener("visibilitychange",()=>{if(document.hidden)saveUI()});
+
+/* ---------- start ---------- */
+let UI={},JUMP=false;
+try{UI=JSON.parse(sessionStorage.getItem("dws-ui")||"{}")||{}}catch(e){}
+try{JUMP=sessionStorage.getItem("dws-jump")==="1";sessionStorage.removeItem("dws-jump")}catch(e){}
+if(typeof UI.q==="string")$("q").value=UI.q;
+fromHash(true);
+render();
+if(UI.drawer)openDrawer(true);
+renderOwner();
+if(GH.token)setDrive(true); // optimistic; checkToken confirms
+checkToken();
+poll();
+// Position once the web fonts have settled (they change card heights), then never fight the reader.
+Promise.race([document.fonts?document.fonts.ready:Promise.resolve(),new Promise(r=>setTimeout(r,1200))]).then(()=>{
+  if(JUMP)jumpToCurrent(true);
+  else if(UI.a&&$(UI.a.id))toAnchor(UI.a);
+  else if(typeof UI.y==="number")window.scrollTo(0,UI.y);
+  else if(pos().cur!==null)jumpToCurrent(true);
+  POSITIONED=true;
+});
+</script>
+</body>
+</html>
